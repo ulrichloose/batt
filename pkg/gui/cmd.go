@@ -5,7 +5,7 @@ import (
 	"math"
 	"os"
 
-	pkgerrors "github.com/pkg/errors"
+	//pkgerrors "github.com/pkg/errors"
 	"github.com/progrium/darwinkit/macos/appkit"
 	"github.com/progrium/darwinkit/macos/foundation"
 	"github.com/progrium/darwinkit/objc"
@@ -120,20 +120,20 @@ func addMenubar(app appkit.Application, apiClient *client.Client) func() {
 	stateItem.SetEnabled(false)
 	menu.AddItem(stateItem)
 
-	currentLimitItem := appkit.NewMenuItemWithAction("Loading...", "", func(sender objc.Object) {})
-	currentLimitItem.SetEnabled(false)
-	menu.AddItem(currentLimitItem)
+	currentChargeItem := appkit.NewMenuItemWithAction("Loading...", "", func(sender objc.Object) {})
+	currentChargeItem.SetEnabled(false)
+	menu.AddItem(currentChargeItem)
 
 	// ==================== QUICK LIMITS ====================
 	menu.AddItem(appkit.MenuItem_SeparatorItem())
 
 	quickLimitsItem := appkit.NewMenuItemWithAction("Quick Limits", "", func(sender objc.Object) {})
-	quickLimitsItem.SetEnabled(false)
+	//quickLimitsItem.SetEnabled(false)
 	menu.AddItem(quickLimitsItem)
 
 	setQuickLimitsItems := map[int]appkit.MenuItem{}
 
-	for _, i := range []int{50, 60, 70, 80, 90} {
+	for _, i := range []int{50, 60, 70, 80, 90, 100} {
 		setQuickLimitsItems[i] = appkit.NewMenuItemWithAction(fmt.Sprintf("Set %d%% Limit", i), fmt.Sprintf("%d", i), func(sender objc.Object) {
 			ret, err := apiClient.SetLimit(i)
 			if err != nil {
@@ -286,20 +286,6 @@ NOTE: if you are using Clamshell mode (using a Mac laptop with an external monit
 After uninstalling the batt daemon, no charging control will be present on your system and your Mac will charge to 100% as normal. The menubar app will still be present, but all options will be disabled. You can remove the menubar app by moving it to the trash.`)
 	advancedMenu.AddItem(uninstallItem)
 
-	// ==================== QUIT ====================
-	menu.AddItem(appkit.MenuItem_SeparatorItem())
-	disableItem := appkit.NewMenuItemWithAction("Disable Charging Limit", "d", func(sender objc.Object) {
-		ret, err := apiClient.SetLimit(100)
-		if err != nil {
-			if !pkgerrors.Is(err, client.ErrDaemonNotRunning) {
-				showAlert("Failed to set limit", ret+err.Error())
-				return
-			}
-		}
-	})
-	disableItem.SetToolTip(`Disable battery charge limit and let your Mac charge to 100%. This almost has the same effect as uninstalling batt, but keeps the batt daemon installed.`)
-	menu.AddItem(disableItem)
-
 	menubarIcon.SetMenu(menu)
 
 	// ==================== CALLBACKS & OBSERVER ====================
@@ -310,7 +296,7 @@ After uninstalling the batt daemon, no charging control will be present on your 
 		installItem:                 installItem,
 		upgradeItem:                 upgradeItem,
 		stateItem:                   stateItem,
-		currentLimitItem:            currentLimitItem,
+		currentChargeItem:           currentChargeItem,
 		quickLimitsItem:             quickLimitsItem,
 		setQuickLimitsItems:         setQuickLimitsItems,
 		advancedSubMenuItem:         advancedSubMenuItem,
@@ -320,7 +306,7 @@ After uninstalling the batt daemon, no charging control will be present on your 
 		preventSystemSleepItem:      preventSystemSleepItem,
 		forceDischargeItem:          forceDischargeItem,
 		uninstallItem:               uninstallItem,
-		disableItem:                 disableItem,
+		//disableItem:                 disableItem,
 		// Power Flow items
 		systemItem:  powerSystemItem,
 		adapterItem: powerAdapterItem,
@@ -447,7 +433,7 @@ type menuController struct {
 	installItem         appkit.MenuItem
 	upgradeItem         appkit.MenuItem
 	stateItem           appkit.MenuItem
-	currentLimitItem    appkit.MenuItem
+	currentChargeItem   appkit.MenuItem
 	quickLimitsItem     appkit.MenuItem
 	setQuickLimitsItems map[int]appkit.MenuItem
 
@@ -461,7 +447,7 @@ type menuController struct {
 	uninstallItem               appkit.MenuItem
 
 	// Quit/disable
-	disableItem appkit.MenuItem
+	// appkit.MenuItem
 }
 
 func (c *menuController) onWillOpen() {
@@ -487,7 +473,7 @@ func (c *menuController) toggleMenusRequiringInstall(battInstalled, capable, nee
 	c.upgradeItem.SetHidden(!battInstalled || (!needUpgrade && capable))
 	// Show when installed AND capable
 	c.stateItem.SetHidden(!battInstalled || !capable)
-	c.currentLimitItem.SetHidden(!battInstalled || !capable)
+	c.currentChargeItem.SetHidden(!battInstalled || !capable)
 
 	// Show when installed AND capable AND no upgrade needed
 	c.quickLimitsItem.SetHidden(!battInstalled || !capable || needUpgrade)
@@ -503,7 +489,7 @@ func (c *menuController) toggleMenusRequiringInstall(battInstalled, capable, nee
 	c.forceDischargeItem.SetHidden(!battInstalled || !capable || needUpgrade)
 	c.uninstallItem.SetHidden(!battInstalled)
 
-	c.disableItem.SetHidden(!battInstalled || !capable || needUpgrade)
+	//c.disableItem.SetHidden(!battInstalled || !capable || needUpgrade)
 }
 
 func (c *menuController) refreshOnOpen() {
@@ -555,7 +541,10 @@ func (c *menuController) refreshOnOpen() {
 
 	conf := config.NewFileFromConfig(rawConfig, "")
 	logrus.WithFields(conf.LogrusFields()).Info("Got config")
-	c.currentLimitItem.SetTitle(fmt.Sprintf("Current Limit: %d%%", conf.UpperLimit()))
+	//c.currentLimitItem.SetTitle(fmt.Sprintf("Current Limit: %d%%", conf.UpperLimit()))
+	c.currentChargeItem.SetTitle(fmt.Sprintf("Current Charge: %d%%", currentCharge))
+	c.currentChargeItem.SetEnabled(true)
+
 	for limit, item := range c.setQuickLimitsItems {
 		setCheckboxItem(item, limit == conf.UpperLimit())
 	}
@@ -575,6 +564,7 @@ func (c *menuController) refreshOnOpen() {
 	if !isCharging && isPluggedIn && conf.UpperLimit() < 100 && currentCharge < conf.LowerLimit() {
 		c.stateItem.SetTitle("State: Will Charge Soon")
 	}
+	c.stateItem.SetEnabled(true)
 
 	setCheckboxItem(c.controlMagSafeLEDItem, conf.ControlMagSafeLED())
 	setCheckboxItem(c.preventIdleSleepItem, conf.PreventIdleSleep())
@@ -596,9 +586,9 @@ func (c *menuController) updatePowerFlowOnce() {
 		}
 		return
 	}
-	c.systemItem.SetAttributedTitle(formatPowerString("System", info.Calculations.SystemPower))
-	c.adapterItem.SetAttributedTitle(formatPowerString("Adapter", info.Calculations.ACPower))
-	c.batteryItem.SetAttributedTitle(formatPowerString("Battery", info.Calculations.BatteryPower))
+	c.systemItem.SetAttributedTitle(formatPowerString("System:", info.Calculations.SystemPower))
+	c.adapterItem.SetAttributedTitle(formatPowerString("Adapter:", info.Calculations.ACPower))
+	c.batteryItem.SetAttributedTitle(formatPowerString("Battery: ", info.Calculations.BatteryPower))
 }
 
 func formatPowerString(label string, value float64) foundation.AttributedString {
@@ -611,17 +601,17 @@ func formatPowerString(label string, value float64) foundation.AttributedString 
 		switch {
 		case value > 0:
 			color = appkit.Color_SystemGreenColor()
-			sign = "+"
+			//sign = "+"
 		case value < 0:
 			color = appkit.Color_SystemRedColor()
-			sign = "-"
+			//sign = "-"
 		default: // value is 0
 			color = appkit.Color_LabelColor()
 		}
 	}
 
 	// Use a monospaced font for alignment.
-	font := appkit.Font_MonospacedSystemFontOfSizeWeight(12, appkit.FontWeightRegular)
+	//font := appkit.Font_MonospacedSystemFontOfSizeWeight(12, appkit.FontWeightRegular)
 
 	// Format the string with padding for alignment.
 	// %-8s  : The label, left-aligned and padded to 8 characters.
@@ -629,7 +619,7 @@ func formatPowerString(label string, value float64) foundation.AttributedString 
 	// %7.2f : The numeric value, formatted to be 7 characters wide with 2 decimal places.
 	//         This pads smaller numbers (like 5.25) with a space to align with larger ones (like 15.25).
 	//         Using math.Abs() is critical to prevent a double negative sign.
-	fullString := fmt.Sprintf("%-8s %s%7.2fW", label+":", sign, math.Abs(value))
+	fullString := fmt.Sprintf("%-8s %s%7.2fW", label, sign, math.Abs(value))
 
 	attrStr := foundation.NewMutableAttributedStringWithString(fullString)
 
@@ -647,12 +637,12 @@ func formatPowerString(label string, value float64) foundation.AttributedString 
 		Length:   uint64(len(fullString) - valueLocation),
 	}
 
-	// Set the label part to the standard secondary gray color.
-	attrStr.AddAttributeValueRange(foundation.AttributedStringKey("NSColor"), appkit.Color_SecondaryLabelColor(), labelRange)
+	// Set the label part to the standard gray color.
+	attrStr.AddAttributeValueRange(foundation.AttributedStringKey("NSColor"), appkit.Color_LabelColor(), labelRange)
 	// Set the value part to its specific color (green, red, or white).
 	attrStr.AddAttributeValueRange(foundation.AttributedStringKey("NSColor"), color, valueRange)
 
 	// Apply the monospaced font to the entire string.
-	attrStr.AddAttributeValueRange(foundation.AttributedStringKey("NSFont"), font, foundation.Range{Location: 0, Length: uint64(len(fullString))})
+	//attrStr.AddAttributeValueRange(foundation.AttributedStringKey("NSFont"), font, foundation.Range{Location: 0, Length: uint64(len(fullString))})
 	return attrStr.AttributedString
 }

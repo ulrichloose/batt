@@ -56,7 +56,8 @@ if [ "${DEBUG:-}" != "1" ]; then
   # release build
   # trim paths, disable symbols and DWARF.
   goasmflags="all=-trimpath=$(pwd)"
-  gogcflags="all=-trimpath=$(pwd)"
+  #gogcflags="all=-trimpath=$(pwd)"
+  gogcflags="all=-N -l -trimpath=$(pwd)"
   goldflags="-s -w"
 
   printf "release...\n"

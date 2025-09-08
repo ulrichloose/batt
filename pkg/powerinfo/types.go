@@ -16,11 +16,13 @@ const (
 // containing the fields used by the batt client and CLI.
 // Units:
 // - Design: mAh
+// - Max: mAh
 // - ChargeRate: mW (may be negative when discharging)
 // - DesignVoltage: Volts
 type Battery struct {
 	State         BatteryState `json:"State"`
 	Design        int          `json:"Design"`
+	Max           int          `json:"Max"`
 	ChargeRate    int          `json:"ChargeRate"`
 	DesignVoltage float64      `json:"DesignVoltage"`
 }

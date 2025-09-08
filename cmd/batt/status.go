@@ -131,9 +131,9 @@ func NewStatusCommand() *cobra.Command {
 
 			if data.batteryInfo.State == powerinfo.Charging && config.UpperLimit() < 100 && data.currentCharge < config.UpperLimit() {
 				// Work in mAh directly (no Wh conversions)
-				designCapacitymAh := float64(data.batteryInfo.Design)
-				targetCapacitymAh := float64(config.UpperLimit()) / 100.0 * designCapacitymAh
-				currentCapacitymAh := float64(data.currentCharge) / 100.0 * designCapacitymAh
+				maxCapacitymAh := float64(data.batteryInfo.Max)
+				targetCapacitymAh := float64(config.UpperLimit()) / 100.0 * maxCapacitymAh
+				currentCapacitymAh := float64(data.currentCharge) / 100.0 * maxCapacitymAh
 				capacityToChargemAh := targetCapacitymAh - currentCapacitymAh
 
 				// Convert charge rate (mW) to mA using V: mA = mW / V
@@ -164,7 +164,8 @@ func NewStatusCommand() *cobra.Command {
 				state = "full"
 			}
 			cmd.Printf("  State: %s\n", bold("%s", state))
-			cmd.Printf("  Full capacity: %s\n", bold("%d mAh", data.batteryInfo.Design))
+			cmd.Printf("  Design capacity: %s\n", bold("%d mAh", data.batteryInfo.Design))
+			cmd.Printf("  Full capacity: %s\n", bold("%d mAh", data.batteryInfo.Max))
 			// Show charge rate in Watts with sign (+ charging, - discharging) and bright color (bold)
 			watts := float64(data.batteryInfo.ChargeRate) / 1e3
 			var rateStr string
