@@ -35,11 +35,12 @@ lint:
 	bash build/lint.sh
 
 app: build
-	rm -rf bin/batt.app
-	cp -r hack/boilerplates/batt.app bin
-	export version=$$(echo "$(VERSION)" | sed 's/v//g') && sed -i '' "s|BATT_VERSION|$$version|g" bin/batt.app/Contents/Info.plist
-	mkdir -p bin/batt.app/Contents/MacOS
-	cp bin/batt bin/batt.app/Contents/MacOS/batt
+	rm -rf bin/BatteryGo.app
+	cp -r hack/boilerplates/BatteryGo.app bin
+	export version=$$(echo "$(VERSION)" | sed 's/v//g') && sed -i '' "s|BATT_VERSION|$$version|g" bin/BatteryGo.app/Contents/Info.plist
+	mkdir -p bin/BatteryGo.app/Contents/MacOS
+	cp bin/batt bin/BatteryGo.app/Contents/MacOS/batt
 
 dmg: app
-	cd bin && create-dmg --volname batt --app-drop-link 360 130 --icon batt 130 130 --format ULFO "batt-$(VERSION).dmg" batt.app
+	cd bin && hdiutil create -volname "BatteryGo" -srcfolder ./BatteryGo.app -ov -format UDZO "BatteryGo.dmg"
+	cd ..
