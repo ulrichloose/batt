@@ -134,7 +134,7 @@ func addMenubar(app appkit.Application, apiClient *client.Client) func() {
 	setQuickLimitsItems := map[int]appkit.MenuItem{}
 
 	for _, i := range []int{50, 60, 70, 80, 90, 100} {
-		setQuickLimitsItems[i] = appkit.NewMenuItemWithAction(fmt.Sprintf("Set %d%% Limit", i), fmt.Sprintf("%d", i), func(sender objc.Object) {
+		setQuickLimitsItems[i] = appkit.NewMenuItemWithAction(fmt.Sprintf("Set Limit to %d%%", i), fmt.Sprintf("%d", i), func(sender objc.Object) {
 			ret, err := apiClient.SetLimit(i)
 			if err != nil {
 				logrus.WithError(err).Error("Failed to set limit")
