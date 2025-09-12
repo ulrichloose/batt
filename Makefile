@@ -36,7 +36,7 @@ lint:
 
 app: build
 	rm -rf bin/BatteryGo.app
-	cp -r hack/boilerplates/BatteryGo.app bin
+	cp -r hack/boilerplates/batt.app bin/BatteryGo.app
 	export version=$$(echo "$(VERSION)" | sed 's/v//g') && sed -i '' "s|BATT_VERSION|$$version|g" bin/BatteryGo.app/Contents/Info.plist
 	mkdir -p bin/BatteryGo.app/Contents/MacOS
 	cp bin/batt bin/BatteryGo.app/Contents/MacOS/batt
@@ -44,3 +44,4 @@ app: build
 dmg: app
 	cd bin && hdiutil create -volname "BatteryGo" -srcfolder ./BatteryGo.app -ov -format UDZO "BatteryGo.dmg"
 	cd ..
+	

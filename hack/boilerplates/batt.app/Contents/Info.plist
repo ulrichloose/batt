@@ -7,7 +7,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>CFBundleName</key>
-	<string>batt</string>
+	<string>BatteryGo</string>
 	<key>CFBundleVersion</key>
 	<string>BATT_VERSION</string>
 	<key>CFBundleShortVersionString</key>
